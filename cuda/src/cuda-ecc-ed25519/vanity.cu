@@ -1,52 +1,16 @@
-#include <vector>
-#include <random>
 #include <chrono>
-#include <assert.h>
-#include <inttypes.h>
-#include <pthread.h>
-#include <stdio.h>
 
 #include "curand_kernel.h"
 #include "gpu_common.h"
+#include "vanity.h"
 
 #include "fe.cu"
 #include "ge.cu"
 #include "sha512.cu"
 
-/* -- Types ----------------------------------------------------------------- */
-
-typedef struct {
-	char name[256];
-	size_t totalGlobalMem;
-	int maxBlocksPerMultiProcessor;
-	int maxThreadsPerBlock;
-	int maxThreadsDim[3];
-	int maxThreadsPerMultiProcessor;
-} DeviceInfo;
-
-typedef struct {
-	bool found;
-	char key[256];
-	char pkey[256];
-} Result;
-
-typedef struct {
-	bool enable_prefix;
-	bool enable_suffix;
-	char prefix[8];
-	char suffix[8];
-	int max_attempts_per_kernel;
-	int max_attempts_per_task;
-} Task;
-
-/* -- Prototypes, Because C++ ----------------------------------------------- */
-
-int get_divices();
-DeviceInfo get_device_info(int device_id);
-Result vanity_run(int device_id, int blocks, int threads_per_block, Task task);
-// kernel functions
-__global__ void vanity_scan(Task* tasks, Result* results, unsigned long long seed);
-__device__ bool b58enc(char* b58, size_t* b58sz, uint8_t* data, size_t binsz);
+// kernel functions declared here
+NOT_EXPORTED __global__ void vanity_scan(Task* tasks, Result* results, unsigned long long seed);
+NOT_EXPORTED __device__ bool b58enc(char* b58, size_t* b58sz, uint8_t* data, size_t binsz);
 
 /* -- Entry Point ----------------------------------------------------------- */
 
@@ -54,7 +18,7 @@ int main(int argc, char const* argv[]) {
 	// ed25519_set_verbose(true);
 
 	// get devices
-	int devices = get_divices();
+	int devices = count_devices();
 	printf("Found %d devices\n\n", devices);
 
 	// get device info
@@ -90,10 +54,9 @@ int main(int argc, char const* argv[]) {
 
 /* -- Vanity Step Functions ------------------------------------------------- */
 
-int get_divices() {
+int count_devices() {
 	int count;
 	CUDA_CHK(cudaGetDeviceCount(&count));
-
 	return count;
 }
 

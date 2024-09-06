@@ -3,7 +3,7 @@ from fastapi import FastAPI, applications
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
 
-from .api import router as api_router
+from src.api import router as api_router
 
 
 CDN_URL = "https://cdn.bootcdn.net/ajax/libs/swagger-ui/5.9.0"

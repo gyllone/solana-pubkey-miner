@@ -14,7 +14,7 @@ include gpu-common.mk
 
 # CHACHA_TEST_BIN=cuda_chacha_test
 # ECC_TEST_BIN=cuda_ed25519_verify
-ECC_VANITY=cuda-vanity
+ECC_VANITY=pubkey-miner
 # LIB=cuda-crypt
 # LIB=cuda-ed25519-vanity
 
@@ -28,13 +28,17 @@ CFLAGS+=-DENDIAN_NEUTRAL -DLTC_NO_ASM -I$(CUDA_HEADER_DIR)
 
 $V/ecc_vanity.o: $(addprefix $(CUDA_ECC_DIR)/,vanity.cu sha512.h fe.h ge.h ../$(CUDA_HEADER_DIR)/gpu_common.h)
 	@mkdir -p $(@D)
-	$(NVCC) -rdc=true $(CFLAGS) -c $< -o $@
+	$(NVCC) -rdc=true $(CFLAGS) -Xcompiler "-fPIC" -c $< -o $@
+
+# # Device linking step
+# $V/ecc_vanity_dlink.o: $V/ecc_vanity.o
+# 	$(NVCC) -dlink -Xcompiler "-fPIC" $< -o $@
 
 $V/lib-$(ECC_VANITY).so: $(addprefix $V/,ecc_vanity.o)
-	$(NVCC) -Xcompiler "-fPIC" --shared --output-file $@ $^
+	$(NVCC) -shared -Xcompiler "-fPIC" --output-file $@ $^
 
 $V/$(ECC_VANITY): $(addprefix $V/,ecc_vanity.o)
-	$(NVCC) $(CFLAGS) -L$V $< -o $@
+	$(NVCC) $(CFLAGS) -L$V -Xcompiler "-fPIC" $< -o $@
 
 .PHONY:clean
 clean:

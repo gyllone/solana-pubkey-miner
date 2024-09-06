@@ -1,14 +1,14 @@
 
 from typing import Annotated, Optional
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Body, Depends, BackgroundTasks
 
-from .core import CudaProcessor, PyDeviceInfo, PyTask, PyResult
-from .types import Response
-from .settings import settings
+from src.processor import CudaProcessor, PyDeviceInfo, PyTask, TaskStatus
+from src.types import Response
+from src.settings import settings
 
 
 router = APIRouter(
-    prefix="api/processor",
+    prefix="/api/processor",
     tags=["Processor Endpoints"]
 )
 
@@ -18,16 +18,16 @@ async def get_processor() -> CudaProcessor:
 
 
 @router.get(
-    "/devices",
+    "/count_devices",
     response_description="Get the number of GPU devices",
     response_model=Response[int],
-    response_model_exclude_defaults=True,
+    response_model_exclude_none=True,
 )
-async def get_devices(
+async def count_devices(
     processor: Annotated[CudaProcessor, Depends(get_processor)]
 ) -> Response[int]:
     try:
-        data = processor.get_devices()
+        data = processor.count_devices()
         return Response.success(data)
     except Exception as e:
         return Response.failure(str(e))
@@ -37,7 +37,7 @@ async def get_devices(
     "/device_info",
     response_description="Get information about a specific device",
     response_model=Response[PyDeviceInfo],
-    response_model_exclude_defaults=True,
+    response_model_exclude_none=True,
 )
 async def get_device_info(
     processor: Annotated[CudaProcessor, Depends(get_processor)],
@@ -54,7 +54,7 @@ async def get_device_info(
     "/device_status",
     response_description="Check if a device is free now",
     response_model=Response[bool],
-    response_model_exclude_defaults=True,
+    response_model_exclude_none=True,
 )
 async def get_device_status(
     processor: Annotated[CudaProcessor, Depends(get_processor)],
@@ -71,9 +71,10 @@ async def get_device_status(
     "/assign_task",
     response_description="Assign a task on a specific device",
     response_model=Response[str],
-    response_model_exclude_defaults=True,
+    response_model_exclude_none=True,
 )
 async def assign_task(
+    background: BackgroundTasks,
     processor: Annotated[CudaProcessor, Depends(get_processor)],
     device_id: Annotated[int, Body()],
     blocks: Annotated[int, Body()],
@@ -81,11 +82,12 @@ async def assign_task(
     task: Annotated[PyTask, Body()],
 ) -> Response[str]:
     try:
-        data = processor.run_task(
+        data = processor.assign_task(
             device_id,
             blocks,
             threads_per_block,
             task,
+            background.add_task,
         )
         return Response.success(data)
     except Exception as e:
@@ -95,13 +97,13 @@ async def assign_task(
 @router.get(
     "/task_result",
     response_description="Get the result of a specific task",
-    response_model=Response[Optional[PyResult]],
-    response_model_exclude_defaults=True,
+    response_model=Response[TaskStatus],
+    response_model_exclude_none=True,
 )
 async def get_task_result(
     processor: Annotated[CudaProcessor, Depends(get_processor)],
     task_id: str,
-) -> Response[Optional[PyResult]]:
+) -> Response[TaskStatus]:
     try:
         data = processor.get_task_result(task_id)
         return Response.success(data)
@@ -109,50 +111,18 @@ async def get_task_result(
         return Response.failure(str(e))
 
 
-@router.get(
-    "/list_running_tasks",
-    response_description="List all running tasks id",
-    response_model=Response[list[str]],
-    response_model_exclude_defaults=True,
-)
-async def list_running_tasks(
-    processor: Annotated[CudaProcessor, Depends(get_processor)],
-) -> Response[list[str]]:
-    try:
-        data = processor.list_running_tasks()
-        return Response.success(data)
-    except Exception as e:
-        return Response.failure(str(e))
-
-
-@router.get(
-    "/list_task_results",
-    response_description="List all task results id",
-    response_model=Response[list[str]],
-    response_model_exclude_defaults=True,
-)
-async def list_task_results(
-    processor: Annotated[CudaProcessor, Depends(get_processor)],
-) -> Response[list[str]]:
-    try:
-        data = processor.list_task_results()
-        return Response.success(data)
-    except Exception as e:
-        return Response.failure(str(e))
-
-
 @router.delete(
-    "/task_result",
-    response_description="Remove a specific task result",
+    "/task_ouput",
+    response_description="Remove a specific task result or error",
     response_model=Response[bool],
-    response_model_exclude_defaults=True,
+    response_model_exclude_none=True,
 )
-async def remove_task_result(
+async def remove_task_output(
     processor: Annotated[CudaProcessor, Depends(get_processor)],
     task_id: str,
 ) -> Response[bool]:
     try:
-        processor.remove_task_result(task_id)
+        processor.remove_task_output(task_id)
         return Response.success(None)
     except Exception as e:
         return Response.failure(str(e))
