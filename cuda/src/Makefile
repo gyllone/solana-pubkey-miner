@@ -28,7 +28,7 @@ CFLAGS+=-DENDIAN_NEUTRAL -DLTC_NO_ASM -I$(CUDA_HEADER_DIR)
 
 $V/ecc_vanity.o: $(addprefix $(CUDA_ECC_DIR)/,vanity.cu sha512.h fe.h ge.h ../$(CUDA_HEADER_DIR)/gpu_common.h)
 	@mkdir -p $(@D)
-	$(NVCC) -rdc=true $(CFLAGS) -Xcompiler "-fPIC" -c $< -o $@
+	$(NVCC) -rdc=true $(CFLAGS) -c $< -o $@
 
 # # Device linking step
 # $V/ecc_vanity_dlink.o: $V/ecc_vanity.o
@@ -38,7 +38,7 @@ $V/lib-$(ECC_VANITY).so: $(addprefix $V/,ecc_vanity.o)
 	$(NVCC) -shared -Xcompiler "-fPIC" --output-file $@ $^
 
 $V/$(ECC_VANITY): $(addprefix $V/,ecc_vanity.o)
-	$(NVCC) $(CFLAGS) -L$V -Xcompiler "-fPIC" $< -o $@
+	$(NVCC) $(CFLAGS) -L$V $< -o $@
 
 .PHONY:clean
 clean:

@@ -39,10 +39,10 @@ int main(int argc, char const* argv[]) {
 	Task task;
 	task.enable_prefix = true;
 	task.enable_suffix = false;
-	memcpy(task.prefix, "he??????", 8);
+	memcpy(task.prefix, "he11o???", 8);
 	memcpy(task.suffix, "????????", 8);
-	task.max_attempts_per_kernel = 30000;
-	task.max_attempts_per_task = 1000;
+	task.max_attempts_per_kernel = 10000;
+	task.max_attempts_per_task = 100;
 
 	Result result = vanity_run(device_id, BLOCKS, THREADS_PER_BLOCK, task);
 	if (result.found) {
