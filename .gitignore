@@ -1,8 +1,8 @@
-*/**/.idea
-*/**/.vscode
+**/.idea
 
-service/__pycache__/
-service/*/**/__pycache__/
+**/.vscode
+
+service/**/__pycache__/
 service/.venv
 
 cuda/src/release
