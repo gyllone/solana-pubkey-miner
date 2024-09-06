@@ -1,1 +1,1 @@
-# Solana Finishing
+# Solana Miner Service
