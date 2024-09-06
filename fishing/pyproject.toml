@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "solana-pubkey-miner"
+version = "0.1.0"
+description = ""
+authors = ["Lone G <gyllone1993@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.12"
+pydantic = "^2.9.0"
+base58 = "^2.1.1"
+fastapi = "^0.113.0"
+pydantic-settings = "^2.4.0"
+click = "^8.1.7"
+uvicorn = "^0.30.6"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

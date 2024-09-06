@@ -1,0 +1,8 @@
+*/**/.idea
+*/**/.vscode
+
+fishing/__pycache__/
+fishing/*/**/__pycache__/
+fishing/.venv
+
+cuda/src/release
