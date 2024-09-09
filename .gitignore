@@ -4,5 +4,6 @@
 
 service/**/__pycache__/
 service/.venv
+service/lib/*
 
 cuda/src/release
